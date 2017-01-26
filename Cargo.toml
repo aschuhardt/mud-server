@@ -1,0 +1,9 @@
+[package]
+name = "dungeon_server"
+version = "0.1.0"
+authors = ["aschuhardt <aschuhardt@gmail.com>"]
+build = "build.rs"
+
+[dependencies]
+rustc-serialize = "*"
+uuid = { version = "*", features = ["rustc-serialize", "v4"] }
