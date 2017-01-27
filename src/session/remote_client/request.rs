@@ -1,5 +1,8 @@
 //request.rs
 
-pub struct Request {
+use uuid::Uuid;
 
+#[derive(RustcDecodable, RustcEncodable)]
+pub struct Request {
+    pub id: Uuid,
 }

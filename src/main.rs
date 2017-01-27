@@ -3,6 +3,7 @@
 // REMOVE ME BEFORE TESTING
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 // REMOVE ME BEFORE TESTING
 
 extern crate rustc_serialize;
@@ -17,5 +18,6 @@ use session::Session;
 
 fn main() {
 	let conf = Configuration::load();
-	println!("{}", conf.data_location);
+	let s = Session::new(&conf);
+    s.run();
 }

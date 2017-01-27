@@ -1,8 +1,8 @@
 //remote_client.rs
 
-mod message;
-mod request;
-mod response;
+pub mod message;
+pub mod request;
+pub mod response;
 
 pub use self::message::Message;
 pub use self::request::Request;

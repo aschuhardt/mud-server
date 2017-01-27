@@ -10,6 +10,9 @@ pub struct Configuration {
     //add more fields to this as needed
     pub data_location: String,
     pub network_port: i32,
+    pub debug_mode: bool,
+    pub max_listener_thread_count: u32,
+    pub max_request_cache_count: u32,
 }
 
 impl Configuration {
@@ -19,7 +22,10 @@ impl Configuration {
 
     pub fn load_path(path: &'static str) -> Configuration {
         let conf_json = FileIO::read_string(path);
-        json::decode(&conf_json).unwrap()
+        match json::decode(&conf_json).unwrap() {
+            Some(c) => c,
+            None => panic!("Unable to read supplied config file at {}!", path),
+        }
     }
 
     pub fn save_config(conf: &Configuration) {
@@ -44,6 +50,9 @@ mod tests {
         let test_conf = Configuration {
             data_location: "testdatalocation".to_string(),
             network_port: 10722,
+            debug_mode: true,
+            max_listener_thread_count: 4,
+            max_request_cache_count: 64,
         };
         //serialize + save configuration object
         Configuration::save_config_path(&test_conf, test_config_path);
