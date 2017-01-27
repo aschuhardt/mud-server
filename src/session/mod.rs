@@ -1,17 +1,11 @@
 //session.rs
 
-mod session;
-mod message;
-mod request;
 mod remote_client;
 
-use std::collections::HashMap;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use uuid::Uuid;
 use configuration::Configuration;
-use message::Message;
-use request::Request;
-use remote_client::RemoteClient;
+use self::remote_client::{RemoteClient, Message, Request, Response};
 
 pub struct Session<'a> {
     config: &'a Configuration,

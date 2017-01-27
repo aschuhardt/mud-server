@@ -8,10 +8,12 @@
 extern crate rustc_serialize;
 extern crate uuid;
 
+mod session;
 mod configuration;
 mod file_io;
 
 use configuration::Configuration;
+use session::Session;
 
 fn main() {
 	let conf = Configuration::load();
