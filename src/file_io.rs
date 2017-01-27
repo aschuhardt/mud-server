@@ -9,7 +9,6 @@ use std::path::Path;
 pub struct FileIO { }
 
 impl FileIO {
-	#[allow(dead_code)]
 	pub fn write_string(file_path: &str, contents: &str) {
 		let mut file = FileIO::create_file(file_path);
 		if let Err(why) = file.write_all(contents.as_bytes()) {
@@ -18,7 +17,6 @@ impl FileIO {
 	    }
 	}
 
-	#[allow(dead_code)]
 	pub fn read_string(file_path: &str) -> String {
 		let mut file = FileIO::open_file(file_path);
 	    let mut s = String::new();
@@ -29,7 +27,6 @@ impl FileIO {
 	    }
 	}
 
-	#[allow(dead_code)]
 	pub fn delete_file(file_path: &str) {
 		if let Err(why) = fs::remove_file(file_path) {
 			panic!("couldn't delete file {}: {}", file_path,
@@ -37,7 +34,6 @@ impl FileIO {
 		}
 	}
 
-	#[allow(dead_code)]
 	fn open_file(file_path: &str) -> File {
 		let path = Path::new(file_path);
 		let display = path.display();
@@ -50,7 +46,6 @@ impl FileIO {
     	}
 	}
 
-	#[allow(dead_code)]
 	fn create_file(file_path: &str) -> File {
 		let path = Path::new(file_path);
 		let display = path.display();

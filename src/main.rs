@@ -10,10 +10,6 @@ extern crate uuid;
 
 mod configuration;
 mod file_io;
-mod session;
-mod message;
-mod request;
-mod remote_client;
 
 use configuration::Configuration;
 

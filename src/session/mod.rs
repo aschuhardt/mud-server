@@ -1,5 +1,10 @@
 //session.rs
 
+mod session;
+mod message;
+mod request;
+mod remote_client;
+
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use uuid::Uuid;
