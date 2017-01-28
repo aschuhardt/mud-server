@@ -38,22 +38,36 @@ impl<'a> Session<'a> {
         while !self.quit {
             if let Ok(c) = req_rs.recv() {
                 //process request cache...
-                for req in c.iter() {
-                    if self.config.debug_mode { println!("Processing request: {}", req.id) };
+                for req in c.requests.iter() {
+                    if self.config.debug_mode { println!("Processing request: {}",
+                                                         c.requests[req.id]) };
                 }
             }
         }
     }
 
-    fn init_listener(&self, tx: &RequestCache) {
-        for _ in 0..self.config.max_request_cache_count {
-            let port = self.config.network_port;
-            let listener_tx = tx.clone();
-            spawn(move || {
-                loop {
-
+    fn init_listener(&self, tx: Sender<RequestCache>) {
+        let port = self.config.network_port;
+        let master_tx = tx.clone();
+        spawn(move || {
+            let (l_tx, l_rx) = channel();
+            if let Ok(listener) = TcpListener::bind(format!("127.0.0.1:{}", port)) {
+                for stream in listener.incoming() {
+                    match stream {
+                        Ok(stream) => {
+                            init_listener_thread(l_tx.clone(), stream);
+                        }
+                    }
                 }
-            });
-        }
+            } else {
+                println!("Failed to bind to port {}!", port);
+            }
+        });
+    }
+
+    fn init_listener_thread(&self, tx: Sender<Request>, stream: TCPStream) {
+        spawn(move || {
+
+        });
     }
 }

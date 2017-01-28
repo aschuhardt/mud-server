@@ -11,7 +11,6 @@ pub struct Configuration {
     pub data_location: String,
     pub network_port: i32,
     pub debug_mode: bool,
-    pub max_listener_thread_count: u32,
     pub max_request_cache_count: u32,
 }
 
@@ -40,7 +39,6 @@ impl Configuration {
 
 #[cfg(test)]
 mod tests {
-
     use configuration::Configuration;
     use file_io::FileIO;
 
@@ -51,7 +49,6 @@ mod tests {
             data_location: "testdatalocation".to_string(),
             network_port: 10722,
             debug_mode: true,
-            max_listener_thread_count: 4,
             max_request_cache_count: 64,
         };
         //serialize + save configuration object
