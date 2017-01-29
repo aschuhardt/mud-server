@@ -87,7 +87,7 @@ impl<'a> Session<'a> {
         //TODO: figure out why the linter says I need to write "ref t" here
         for &(s, ref t) in &REQUEST_TYPE_VERB_MAP {
             let verb_token = format!("{}_{}", s, validation_token);
-            let hash = Uuid::new_v5(&Uuid::new_v4(), verb_token.as_str());
+            let hash = Uuid::new_v5(&NAMESPACE_OID, verb_token.as_str());
             hashes.insert(hash, t.clone());
             if self.config.debug_mode {
                 println!("Hash created for request type \"{}\": {}", s, hash.hyphenated());
