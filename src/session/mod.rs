@@ -3,17 +3,17 @@
 mod remote_client;
 mod request_cache;
 
-use std::io::{Read, Write};
+use std::io::{Read};
 use std::str::FromStr;
 use std::net::{TcpListener, TcpStream, Ipv4Addr, SocketAddrV4};
 use std::collections::{HashMap, VecDeque};
-use std::thread::{Thread, JoinHandle, spawn};
+use std::thread::{spawn};
 use std::sync::mpsc::{Sender, Receiver, channel};
 use time::{Duration, PreciseTime};
-use uuid::{Uuid, Hyphenated};
-use rustc_serialize::json;
+use uuid::{Uuid, NAMESPACE_OID};
 use configuration::Configuration;
-use self::remote_client::{RemoteClient, Message, Request, Response};
+use self::remote_client::{RemoteClient, Message, Request, RequestType};
+use self::remote_client::request::REQUEST_TYPE_VERB_MAP;
 use self::request_cache::RequestCache;
 
 const CACHE_EMIT_INTERVAL: i64 = 60;
@@ -45,7 +45,7 @@ impl<'a> Session<'a> {
                 //process request cache...
                 for (id, req) in &c.requests {
                     if self.config.debug_mode {
-                        println!("Processing request: {}", id)
+                        println!("Processing request: {} from client {}", id, req.client_id);
                     };
                 }
             }
@@ -56,6 +56,7 @@ impl<'a> Session<'a> {
         let local_port = self.config.network_port;
         let cache_capacity = self.config.max_request_cache_count;
         let debug_mode = self.config.debug_mode;
+        let type_hashes = self.create_request_type_hashes(&self.config.request_validation_token);
         spawn(move || {
             let (l_tx, l_rx) = channel();
             //initialize loop that will wait for requests returned from listeners and add them to a
@@ -70,17 +71,29 @@ impl<'a> Session<'a> {
                     println!("Started listening on port {}...", local_port);
                 }
                 for stream in listener.incoming() {
-                    match stream {
-                        Ok(stream) => {
-                            Session::init_listener_thread(l_tx.clone(), stream);
-                        },
-                        Err(why) => println!("Couldn't read request stream from {}!", why),
+                    if let Ok(mut s) = stream {
+                        Session::init_listener_thread(l_tx.clone(), &mut s, type_hashes.clone());
                     }
                 }
             } else {
                 println!("Failed to bind to port {}!", local_port);
             }
         });
+    }
+
+    fn create_request_type_hashes(&self, validation_token: &str) -> HashMap<Uuid, RequestType> {
+        // let validation_token = self.config.request_validation_token;
+        let mut hashes: HashMap<Uuid, RequestType> = HashMap::new();
+        //TODO: figure out why the linter says I need to write "ref t" here
+        for &(s, ref t) in &REQUEST_TYPE_VERB_MAP {
+            let verb_token = format!("{}_{}", s, validation_token);
+            let hash = Uuid::new_v5(&Uuid::new_v4(), verb_token.as_str());
+            hashes.insert(hash, t.clone());
+            if self.config.debug_mode {
+                println!("Hash created for request type \"{}\": {}", s, hash.hyphenated());
+            }
+        }
+        hashes
     }
 
     fn funnel_requests_into_cache(cache_tx: Sender<RequestCache>, l_rx: Receiver<Request>,
@@ -90,7 +103,7 @@ impl<'a> Session<'a> {
             let mut emit_interval_start = PreciseTime::now();
             loop {
                 //cache incoming requsts from listener threads
-                if let Ok(req) = l_rx.recv() {
+                if let Ok(req) = l_rx.try_recv() {
                     req_cache.add(req);
                 }
 
@@ -103,17 +116,22 @@ impl<'a> Session<'a> {
                 if emit_interval_start.to(PreciseTime::now()) >= Duration::microseconds(CACHE_EMIT_INTERVAL) {
                     emit_interval_start = PreciseTime::now();
                     if let Err(why) = cache_tx.send(req_cache.clone()) {
-                        panic!("Failed to emit request cache to main session thread: {}.", why);
+                        panic!("Failed to emit request cache to main session thread: {}", why);
                     }
                 }
             }
         });
     }
 
-    fn init_listener_thread(tx: Sender<Request>, stream: TcpStream) {
-        spawn(move || {
-
-        });
+    fn init_listener_thread(tx: Sender<Request>, stream: &mut TcpStream, type_hashes: HashMap<Uuid, RequestType>) {
+        let mut buffer = String::new();
+        if let Err(why) = stream.read_to_string(&mut buffer) {
+            println!("Malformed or invalid stream buffer encountered from peer: {}. Reason: {}",
+                     stream.peer_addr().unwrap(), why);
+        } else if let Some(req) = Request::new(buffer, type_hashes) {
+            if let Err(why) = tx.send(req) {
+                println!("Unable to send request to caching thread: {}", why);
+            }
+        }
     }
-
 }

@@ -31,7 +31,8 @@ impl RequestCache {
             self.requests.clear();
         }
         //add request to cache if it isn't already present
-        self.requests.entry(req.id).or_insert(req);
+        let cache_req = req.clone();
+        self.requests.entry(req.id).or_insert(cache_req);
         if self.show_debug && count == self.requests.len() {
             println!("Duplicate request was not cached: {}.", req.id);
         }
