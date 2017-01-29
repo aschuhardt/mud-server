@@ -7,3 +7,4 @@ build = "build.rs"
 [dependencies]
 rustc-serialize = "*"
 uuid = { version = "*", features = ["rustc-serialize", "v4"] }
+time = "*"

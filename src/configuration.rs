@@ -9,9 +9,9 @@ static DEFAULT_CONFIG_PATH: &'static str = "config/config.json";
 pub struct Configuration {
     //add more fields to this as needed
     pub data_location: String,
-    pub network_port: i32,
+    pub network_port: u16,
     pub debug_mode: bool,
-    pub max_request_cache_count: u32,
+    pub max_request_cache_count: usize,
 }
 
 impl Configuration {
@@ -46,7 +46,7 @@ mod tests {
     fn test_config_io() {
         let test_config_path = "testconfig.json";
         let test_conf = Configuration {
-            data_location: "testdatalocation".to_string(),
+            data_location: "data/data.json".to_string(),
             network_port: 10722,
             debug_mode: true,
             max_request_cache_count: 64,

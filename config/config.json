@@ -1,1 +1,1 @@
-{"data_location":"data/data.json","network_port":10722}
+{"data_location":"data/data.json","network_port":10722,"debug_mode":true,"max_request_cache_count":64}

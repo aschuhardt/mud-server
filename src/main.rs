@@ -8,6 +8,7 @@
 
 extern crate rustc_serialize;
 extern crate uuid;
+extern crate time;
 
 mod session;
 mod configuration;

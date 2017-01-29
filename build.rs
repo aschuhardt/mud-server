@@ -25,13 +25,13 @@ fn create_config() {
 
 	//create config file
 	let mut file = match File::create(&config_path) {
+        Ok(file) => file,
     	Err(why) => panic!("couldn't create {}: {}", config_path_display,
         	                                         why.description()),
-    	Ok(file) => file,
 	};
 
 	//write default config contents to file
-	let config_contents = "{\"data_location\":\"data/data.json\",\"network_port\":10722}";
+	let config_contents = "{\"data_location\":\"data/data.json\",\"network_port\":10722,\"debug_mode\":true,\"max_request_cache_count\":64}";
 	if let Err(why) = file.write_all(config_contents.as_bytes()) {
             panic!("couldn't write to {}: {}", config_path_display,
                                                why.description());

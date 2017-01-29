@@ -1,17 +1,19 @@
 //request_cache.rs
 
 use uuid::Uuid;
+use std::clone::Clone;
 use std::collections::HashMap;
 use super::remote_client::request::Request;
 
+#[derive(Clone)]
 pub struct RequestCache {
     pub requests: HashMap<Uuid, Request>,
     show_debug: bool,
-    max_size: u32,
+    max_size: usize,
 }
 
 impl RequestCache {
-    pub fn new(debug_mode: bool, capacity: u32) -> RequestCache {
+    pub fn new(debug_mode: bool, capacity: usize) -> RequestCache {
         RequestCache {
             requests: HashMap::new(),
             show_debug: debug_mode,
@@ -21,18 +23,17 @@ impl RequestCache {
 
     pub fn add(&mut self, req: Request) {
         //clear cache if size exceeds limit
-        if self.should_clear() {
+        let count = self.requests.len();
+        if count >= self.max_size {
+            if self.show_debug {
+                println!("Clearing {} requests from cache.", count);
+            }
             self.requests.clear();
         }
         //add request to cache if it isn't already present
-        if !self.requests.contains_key(&req.id) {
-            self.requests.insert(req.id, req);
-        } else if self.show_debug {
-            println!("Dropped a duplicate packet: {}", req.id);
+        self.requests.entry(req.id).or_insert(req);
+        if self.show_debug && count == self.requests.len() {
+            println!("Duplicate request was not cached: {}.", req.id);
         }
-    }
-
-    fn should_clear(&self) -> bool {
-        self.requests.len() >= self.max_size as usize
     }
 }

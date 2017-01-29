@@ -2,7 +2,7 @@
 
 use uuid::Uuid;
 
-#[derive(RustcDecodable, RustcEncodable)]
+#[derive(RustcDecodable, RustcEncodable, Clone, Copy)]
 pub struct Request {
     pub id: Uuid,
 }
