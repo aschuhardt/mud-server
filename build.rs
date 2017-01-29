@@ -31,7 +31,7 @@ fn create_config() {
 	};
 
 	//write default config contents to file
-	let config_contents = "{\"data_location\":\"data/data.json\",\"network_port\":10722,\"debug_mode\":true,\"max_request_cache_count\":64}";
+	let config_contents = "{\"data_location\":\"data/data.json\",\"network_port\":10722,\"debug_mode\":true,\"max_request_cache_count\":64,\"request_validation_token\":\"d5695226-2508-4187-b1eb-bed9665fbf26\"}";
 	if let Err(why) = file.write_all(config_contents.as_bytes()) {
             panic!("couldn't write to {}: {}", config_path_display,
                                                why.description());
