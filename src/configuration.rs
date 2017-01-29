@@ -28,10 +28,12 @@ impl Configuration {
         }
     }
 
+    #[cfg(test)]
     pub fn save_config(conf: &Configuration) {
         Configuration::save_config_path(conf, DEFAULT_CONFIG_PATH);
     }
 
+    #[cfg(test)]
     pub fn save_config_path(conf: &Configuration, path: &str) {
         let conf_json = json::encode(conf).unwrap();
         FileIO::write_string(path, conf_json.as_str());
