@@ -12,6 +12,7 @@ pub struct Configuration {
     pub network_port: u16,
     pub debug_mode: bool,
     pub max_request_cache_count: usize,
+    pub request_validation_token: String,
 }
 
 impl Configuration {
@@ -21,9 +22,9 @@ impl Configuration {
 
     pub fn load_path(path: &'static str) -> Configuration {
         let conf_json = FileIO::read_string(path);
-        match json::decode(&conf_json).unwrap() {
-            Some(c) => c,
-            None => panic!("Unable to read supplied config file at {}!", path),
+        match json::decode(&conf_json) {
+            Ok(c) => c,
+            Err(why) => panic!("Unable to read supplied config file at {}: {}", path, why),
         }
     }
 
@@ -50,6 +51,7 @@ mod tests {
             network_port: 10722,
             debug_mode: true,
             max_request_cache_count: 64,
+            request_validation_token: "d5695226-2508-4187-b1eb-bed9665fbf26".to_string(),
         };
         //serialize + save configuration object
         Configuration::save_config_path(&test_conf, test_config_path);
