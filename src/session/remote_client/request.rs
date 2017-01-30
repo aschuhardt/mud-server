@@ -47,7 +47,7 @@ impl Request {
 }
 
 #[derive(RustcDecodable, RustcEncodable)]
-struct SerializableRequest {
+pub struct SerializableRequest {
     pub client_id: Uuid,
     pub req_type: Uuid,
     pub contents: Vec<u8>,

@@ -24,7 +24,7 @@ pub struct Session<'a> {
     message_queue: VecDeque<Message>,
     response_queue: VecDeque<Request>,
     remote_clients: HashMap<&'a Uuid, RemoteClient>,
-    quit: bool,
+    pub quit: bool,
 }
 
 impl<'a> Session<'a> {
@@ -73,7 +73,10 @@ impl<'a> Session<'a> {
                 }
                 for stream in listener.incoming() {
                     if let Ok(mut s) = stream {
-                        Session::init_listener_thread(l_tx.clone(), &mut s, type_hashes.clone());
+                        Session::init_listener_thread(l_tx.clone(),
+                                                      &mut s,
+                                                      type_hashes.clone(),
+                                                      debug_mode);
                     }
                 }
             } else {
@@ -82,7 +85,7 @@ impl<'a> Session<'a> {
         });
     }
 
-    fn create_request_type_hashes(&self, validation_token: &str) -> HashMap<Uuid, RequestType> {
+    pub fn create_request_type_hashes(&self, validation_token: &str) -> HashMap<Uuid, RequestType> {
         // let validation_token = self.config.request_validation_token;
         let mut hashes: HashMap<Uuid, RequestType> = HashMap::new();
         //TODO: figure out why the linter says I need to write "ref t" here
@@ -118,21 +121,85 @@ impl<'a> Session<'a> {
                     emit_interval_start = PreciseTime::now();
                     if let Err(why) = cache_tx.send(req_cache.clone()) {
                         panic!("Failed to emit request cache to main session thread: {}", why);
+                    } else {
+                        req_cache.clear();
                     }
                 }
             }
         });
     }
 
-    fn init_listener_thread(tx: Sender<Request>, stream: &mut TcpStream, type_hashes: HashMap<Uuid, RequestType>) {
+    fn init_listener_thread(tx: Sender<Request>, stream: &mut TcpStream, type_hashes: HashMap<Uuid, RequestType>, debug_mode: bool) {
         let mut buffer = String::new();
         if let Err(why) = stream.read_to_string(&mut buffer) {
             println!("Malformed or invalid stream buffer encountered from peer: {}. Reason: {}",
                      stream.peer_addr().unwrap(), why);
-        } else if let Some(req) = Request::new(buffer, type_hashes) {
+        } else if let Some(req) = Request::new(buffer.clone(), type_hashes) {
             if let Err(why) = tx.send(req) {
                 println!("Unable to send request to caching thread: {}", why);
+            } else if debug_mode {
+                println!("Request received: {}", buffer.as_str());
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::prelude::*;
+    use std::net::TcpStream;
+    use self::remote_client::request::{SerializableRequest, RequestType};
+    use uuid::Uuid;
+    use rustc_serialize::json;
+    use std::{thread, time};
+
+    #[test]
+    fn test_request_receipt() {
+        //create config
+        let config = Configuration::load();
+        let port = config.network_port;
+        let validation_token = config.request_validation_token.as_str();
+
+        //start a session to listen for requests
+        thread::spawn(|| {
+            let s_config = Configuration::load();
+            let p_session = Session::new(&s_config);
+            p_session.run();
+        });
+
+        //give server time to start
+        let five_secs = time::Duration::from_millis(5000);
+        thread::sleep(five_secs);
+
+        //send a bunch of packets corresponding to the different requests types
+        for i in 0..1024 {
+            //get type hashes
+            let type_hashes = Session::new(&config).create_request_type_hashes(validation_token);
+
+            for (h, t) in type_hashes {
+                //build request content payload
+                let payload = "Hello world!".as_bytes().to_vec();
+
+                //build request
+                let req = SerializableRequest {
+                    client_id: Uuid::new_v4(),
+                    req_type: h,
+                    contents: payload,
+                };
+
+                //serialize request
+                let serialized_req = json::encode(&req).unwrap();
+                let req_bytes = serialized_req.as_bytes();
+
+                let ipv4 = Ipv4Addr::from_str("127.0.0.1").unwrap();
+                let addr = SocketAddrV4::new(ipv4, port);
+                let mut stream = TcpStream::connect(addr).unwrap();
+                let _ = stream.write(&req_bytes);
+            }
+        }
+
+        //give server time to finish processing requests before
+        thread::sleep(five_secs);
     }
 }
