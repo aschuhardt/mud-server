@@ -1,10 +1,5 @@
 //main.rs
 
-extern crate rustc_serialize;
-extern crate uuid;
-extern crate time;
-extern crate bincode;
-
 extern crate mud_server_session;
 
 use mud_server_session::configuration::Configuration;
