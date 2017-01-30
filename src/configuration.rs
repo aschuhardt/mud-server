@@ -5,7 +5,7 @@ use file_io::FileIO;
 
 static DEFAULT_CONFIG_PATH: &'static str = "config/config.json";
 
-#[derive(RustcDecodable, RustcEncodable)]
+#[derive(RustcDecodable, RustcEncodable, Clone)]
 pub struct Configuration {
     //add more fields to this as needed
     pub data_location: String,
