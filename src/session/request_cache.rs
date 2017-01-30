@@ -37,4 +37,8 @@ impl RequestCache {
             println!("Duplicate request was not cached: {}.", req.id);
         }
     }
+
+    pub fn clear(&mut self) {
+        self.requests.clear();
+    }
 }
