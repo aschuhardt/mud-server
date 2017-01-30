@@ -1,22 +1,14 @@
 //main.rs
 
-// REMOVE ME BEFORE TESTING
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-// REMOVE ME BEFORE TESTING
-
 extern crate rustc_serialize;
 extern crate uuid;
 extern crate time;
 extern crate bincode;
 
-mod session;
-mod configuration;
-mod file_io;
+extern crate mud_server_session;
 
-use configuration::Configuration;
-use session::Session;
+use mud_server_session::configuration::Configuration;
+use mud_server_session::session::Session;
 
 fn main() {
 	let conf = Configuration::load();
