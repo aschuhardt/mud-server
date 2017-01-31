@@ -5,4 +5,4 @@ authors = ["aschuhardt <aschuhardt@gmail.com>"]
 build = "build.rs"
 
 [dependencies]
-mud_server_session = { path = "../mud_server_session" }
+mud_server_session = { git = "https://github.com/aschuhardt/mud_server_session.git" }
